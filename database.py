@@ -15,32 +15,6 @@ class DatabaseManager:
         except Error as e:
             print(f"Fehler bei der Verbindung: {e}")
 
-    def _create_table(self):
-        # Tabelle für Artikel
-        query_gpus = """
-        CREATE TABLE IF NOT EXISTS gpus (
-            id VARCHAR(50) PRIMARY KEY,
-            name VARCHAR(100),
-            ek_preis DECIMAL(10, 2),
-            vk_preis DECIMAL(10, 2),
-            bestand INT DEFAULT 0,
-            mindestbestand INT DEFAULT 5
-        )
-        """
-        # NEU: Tabelle für Verkaufs-Historie (Umsatz & Gewinn)
-        query_sales = """
-        CREATE TABLE IF NOT EXISTS sales (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            gpu_id VARCHAR(50),
-            menge INT,
-            umsatz DECIMAL(10, 2),
-            gewinn DECIMAL(10, 2),
-            datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-        self.cursor.execute(query_gpus)
-        self.cursor.execute(query_sales)
-        self.connection.commit()
 
     def registriere_verkauf(self, gpu_id, menge, umsatz, gewinn):
         """Speichert einen getätigten Verkauf in der sales-Tabelle."""
@@ -50,21 +24,6 @@ class DatabaseManager:
             self.connection.commit()
         except Error as e:
             print(f"Fehler beim Speichern des Verkaufs: {e}")
-
-    def get_finanz_statistik(self):
-        """Holt die Summe von Umsatz und Gewinn aus der sales-Tabelle."""
-        try:
-            # Wir nutzen einen temporären Cursor für ein flaches Ergebnis
-            temp_cursor = self.connection.cursor(dictionary=False)
-            query = "SELECT SUM(umsatz), SUM(gewinn) FROM sales"
-            temp_cursor.execute(query)
-            result = temp_cursor.fetchone()
-            temp_cursor.close()
-            # Falls noch keine Verkäufe da sind, (0, 0) zurückgeben
-            return result if result and result[0] is not None else (0.0, 0.0)
-        except Error as e:
-            print(f"Fehler bei Statistik-Abfrage: {e}")
-            return (0.0, 0.0)
 
     def get_alle_artikel_daten(self):
         try:
