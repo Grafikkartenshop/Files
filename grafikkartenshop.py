@@ -71,23 +71,17 @@ class Grafikkartenshop:
             return False
         gesamtkosten = gpu.getEinkaufspreis() * menge
 
-        if self.getBudget() < gesamtkosten:
-            if (self.getBudget() + self.getUmsatz()) >= gesamtkosten:
-                self.setBudget(self.getBudget() + self.getUmsatz())
-                self.setUmsatz(0.0)
-                self.shop_finanzen_speichern()
-            else:
-                return False
-        
-        neuer_bestand = gpu.getBestand() + menge
-
-        db = DatabaseManager()
-        db.execute_query("UPDATE Grafikkarte SET bestand = %s WHERE artikelNr = %s", (neuer_bestand, artikelNr))
-
-        self.setBudget(self.getBudget() - gesamtkosten)
-        self.shop_finanzen_speichern()
-        self.daten_laden()
-        return True
+        if self.getBudget() >= gesamtkosten:
+            neuer_bestand = gpu.getBestand() + menge
+            
+            db = DatabaseManager()
+            db.execute_query("UPDATE Grafikkarte SET bestand = %s WHERE artikelNr = %s", (neuer_bestand, artikelNr))
+            self.setBudget(self.getBudget() - gesamtkosten)
+            self.shop_finanzen_speichern()
+            self.daten_laden()
+            return True
+        else:
+            return False
 
     def grafikkarteVerkaufen(self, artikelNr, menge) -> bool:
         gpu = self.sucheGrafikkarte(artikelNr)
@@ -100,6 +94,7 @@ class Grafikkartenshop:
 
             db.execute_query("UPDATE Grafikkarte SET bestand = %s WHERE artikelNr = %s", (neuer_bestand, artikelNr))
 
+            self.setBudget(self.getBudget() + erloes)
             self.setUmsatz(self.getUmsatz() + erloes)
 
             self.shop_finanzen_speichern()
@@ -173,9 +168,17 @@ class Grafikkartenshop:
 
             tk.Button(main_container, text="Zurück", command=zeige_hauptmenue).pack(anchor="w", padx=10, pady=5)
 
+            table_frame = tk.Frame(main_container)
+            table_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+            scrollbar = tk.Scrollbar(table_frame, orient="vertical")
+            scrollbar.pack(side="right", fill="y")
+
             # Tabelle erstellen
             columns = ("Artikelnummer", "Modell", "Hersteller", "Marke", "VRAM-Groesse", "Speichertyp", "Einkaufspreis", "Verkaufspreis", "Bestand")
-            tree = ttk.Treeview(main_container, columns=columns, show="headings")
+            tree = ttk.Treeview(table_frame, columns=columns, show="headings", yscrollcommand=scrollbar.set)
+
+            scrollbar.config(command=tree.yview)
             
             for col in columns:
                 tree.heading(col, text=col)
@@ -195,7 +198,7 @@ class Grafikkartenshop:
                     gpu.getBestand()
                 ))
 
-            tree.pack(fill="both", expand=True, padx=20, pady=10)
+            tree.pack(side="left", fill="both", expand=True)
 
         def zeige_suche():
             clear_container()
