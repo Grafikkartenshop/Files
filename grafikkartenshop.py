@@ -276,7 +276,7 @@ class Grafikkartenshop:
                 
                 gpu = gpushop1.sucheGrafikkarte(nr)
                 if gpu:
-                    bestaetigung = messagebox.askyesno("Löschen bestätigen", f"Möchten Sie die Grafikkarte '{gpu.getModell()}' (Art-Nr: {nr}) wirklich unwiderruflich löschen?")
+                    bestaetigung = messagebox.askyesno("Löschen bestätigen", f"Möchten Sie die Grafikkarte '{gpu.getModell()}' (Art-Nr: {nr}) wirklich unwiderruflich löschen? Die noch im Bestand vorhandenen Grafikkarten werden entsorgt.")
 
                     if bestaetigung:
                         if gpushop1.removeGrafikkarte(nr):
@@ -344,7 +344,7 @@ class Grafikkartenshop:
                         messagebox.showinfo("Erfolg", "Einkauf erfolgreich gebucht!")
                         zeige_handel()
                     else:
-                        messagebox.showerror("Fehler", "Nicht genug Kapital verfügbar (Budget + Umsatz zu niedrig)")
+                        messagebox.showerror("Fehler", "Nicht genug Kapital verfügbar (Budget zu niedrig)")
                 except ValueError:
                     messagebox.showerror("Fehler", "Bitte eine gültige Menge (Zahl) eingeben.")
                 
